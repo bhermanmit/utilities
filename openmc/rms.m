@@ -124,7 +124,16 @@ end
 meanref = mean(src_64{10},3);
 
 % make surface plot
-surf(meanref)
+x = linspace(1,dim+1,dim+1);
+y = x;
+z = 1;
+[X,Y,Z] = meshgrid(x,y,z);
+fig=figure;
+axes1 = axes('Parent',fig);
+grid(axes1,'on');
+hold(axes1,'all');
+axis([1,dim+1,1,dim+1])
+surf(X,Y,Z,meanref,'Parent',axes1);
 
 %% Compute All RMS for 1 mil
 
@@ -180,10 +189,11 @@ end
 %% Plot All RMS
 
 figure
-loglog(linspace(1e6,640e6,640),rms_1_all*100,'b.');
+h1=loglog(linspace(1e6,640e6,640),rms_1_all*100,'b.');
 hold on
-loglog(linspace(1e6,640e6,640),rms_cmfd_1_all*100,'go');
-loglog(linspace(64e6,640e6,10),rms_64_all*100,'r+');
+h2=loglog(linspace(1e6,640e6,640),rms_cmfd_1_all*100,'go');
+h3=loglog(linspace(64e6,640e6,10),rms_64_all*100,'r+');
+legend([h1(1),h2(2),h3(3)],'OpenMC 1 million','CMFD 1 million','OpenMC 64 million');
 
 %% Compute RMS for 1 mil
 
@@ -195,6 +205,22 @@ for i = 1:length(src_1)
    
     % compute rms and store
     rms_1(i) = sqrt(sum(sum(((mean(src_1{i}(:,:,1:10),3) - meanref).^2)))*1/Np);
+    
+    % display
+    fprintf('RMS computed for cycle: %d\n',i);
+    
+end
+
+%% Compute RMS for 1 mil CMFD
+
+% preallocate rms vector
+rms_cmfd_1 = zeros(length(src_1),1);
+
+% begin loop over cycles
+for i = 1:length(src_1)
+   
+    % compute rms and store
+    rms_cmfd_1(i) = sqrt(sum(sum(((mean(src_cmfd_1{i}(:,:,1:10),3) - meanref).^2)))*1/Np);
     
     % display
     fprintf('RMS computed for cycle: %d\n',i);
@@ -216,3 +242,16 @@ for i = 1:length(src_64)
     fprintf('RMS computed for cycle: %d\n',i);
     
 end
+
+%% Plot RMS
+
+figure
+h1=loglog(linspace(1e6,640e6,640),rms_1*100,'b.');
+hold on
+h2=loglog(linspace(1e6,640e6,640),rms_cmfd_1*100,'go');
+h3=loglog(linspace(64e6,640e6,10),rms_64*100,'r+');
+legend([h1,h2,h3],'OpenMC 1 million','CMFD 1 million','OpenMC 64 million');
+
+%% save results
+
+save rms_results
